@@ -108,13 +108,20 @@ class MBSyncPlugin(BeetsPlugin):
             data_source = album.get("data_source") or album.items()[0].get(
                 "data_source", "MusicBrainz"
             )
-            if not (
-                album_info := metadata_plugins.album_for_id(
+            try:
+                album_info = metadata_plugins.album_for_id(
                     album_id, data_source
                 )
-            ):
+            except Exception as exc:
+                self._log.warning(
+                    "Release ID {} lookup failed for album '{}': {}",
+                    album_id, album.album, exc
+                )
+                continue
+
+            if not album_info:
                 self._log.info(
-                    "Release ID {} not found for album {}", album_id, album
+                    "Release ID {} not found for album '{}'", album_id, album.album
                 )
                 continue
 
